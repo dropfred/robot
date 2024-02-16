@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+
+    <style>
+        fieldset {border-radius: 10px;}
+    </style>
+
+    <!-- <script type="module" src="calculateur.js"></script> -->
+    <script type="text/javascript">
+
+"use strict";
+
+window.addEventListener("load", () => {
+    // // 120 pièces de taille M4, 80 pièces de taille M5, et 60 pièces de taille M6
+    // const WASHER = {
+    //     M4 : {n : 120, inner: 0.205, outter : 0.340},
+    //     M5 : {n : 80 , inner: 0.265, outter : 0.425},
+    //     M6 : {n : 60 , inner: 0.325, outter : 0.515}
+    // };
+
+    // // acier : 7.85 g/cm³
+    // // zinc : 2.71 g/cm³
+    // const DENSITY = 6.0;
+
+    // function volume(washer) {
+    //     return Math.PI * (washer.outter + washer.inner) * Math.pow(washer.outter - washer.inner, 2.0);
+    // }
+
+    // function mass(washer) {
+    //     return volume(washer) * DENSITY;
+    // }
+
+    const form = document.querySelectorAll('form')[0];
+
+    // P = E * (10 * w * M + x * S) + (120 - t) + 2 * D + y * z * BONUS
+    function score() {
+        const f = form.fail.checked;
+        const t = parseFloat(form.time.value);
+        const d = parseFloat(form.distance.value);
+        const e = parseFloat(form.energy.value);
+        const w = parseFloat(form.clean.value);
+        const s = f ? 0 : parseFloat(form.park.value);
+        const x = parseFloat(form.precision.value);
+        const m = f ? 0 : parseFloat(form.mass.value);
+        const b = parseFloat(form.bonus.value);
+        const y = ((10 * w * m) >= 100) ? 1 : 0;
+        const z = (t <= 60) ? 1 : (t <= 120) ? 0.5 : 0;
+
+        const score = e * (10 * w * m + x * s) + (120 - Math.min(t, 120)) + 2 * d + y * z * b;
+
+        for (const n of ['mass', 'energy', 'clean']) {
+            document.getElementById('fs_' + n).disabled = f;
+        }
+        document.getElementById('fs_bonus').disabled = f || ((y * z) === 0);
+
+        form.text_mass.value = form.mass.value + ' g';
+        form.text_distance.value = form.distance.value + ' cm';
+        form.text_time.value = ((t <= 120) ? form.time.value : "120+") + ' s';
+
+        document.getElementById('score').innerText = Math.round(score).toString();
+    }
+
+    form.addEventListener('input', score);
+
+    score();
+});
+
+    </script>
+</head>
+<body>
+
+    <form>
+
+    <div style="display: flex; flex-direction: column; gap: 1em; width: 50em; font-family: Arial, Helvetica, sans-serif;">
+        <fieldset>
+            <legend>Consigne :</legend>
+            <div>
+                <label>Aucune tentative de ramassage ou de pesée avant stationnement<input type="checkbox" name="fail" /></label>
+            </div>
+        </fieldset>
+
+        <fieldset id="fs_mass">
+            <legend>Masse :</legend>
+            <div>
+                <input type="range" name="mass" min="0" max="80" value="80" step="5" />
+                <output name="text_mass"></output>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Distance :</legend>
+            <div>
+                <input type="range" name="distance" min="0" max="200" value="200" step="10" />
+                <output name="text_distance"></output>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Temps :</legend>
+            <div>
+                <input type="range" name="time" min="5" max="125" value="60" step="5" />
+                <output name="text_time"></output>
+            </div>
+        </fieldset>
+
+        <fieldset id="fs_energy">
+            <legend>Energie :</legend>
+            <div>
+                <label><input type="radio" value="2.0" name="energy" checked />Une batterie 9V</label>
+            </div>
+            <div>
+                <label><input type="radio" value="1.0" name="energy" />Deux batteries 9V</label>
+            </div>
+        </fieldset>
+
+        <fieldset id="fs_clean">
+            <legend>Propreté :</legend>
+            <div>
+                <label><input type="radio" value="1.0" name="clean" checked />Aucun rebut</label>
+            </div>
+            <div>
+                <label><input type="radio" value="0.5" name="clean" />Un seul rebut</label>
+            </div>
+            <div>
+                <label><input type="radio" value="0.25" name="clean" />Deux rebuts ou plus</label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Stationnement :</legend>
+            <div>
+
+                <label><input type="radio" value="300" name="park" checked />Tous les points d'appuis du prototype dans l'aire de stationnement</label>
+            </div>
+            <div>
+                <label><input type="radio" value="150" name="park" />Au moins un point d'appui du prototype dans l'aire de stationnement</label>
+            </div>
+            <div>
+                <label><input type="radio" value="0" name="park" />Aucun point d'appui du prototype dans l'aire de stationnement</label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Précision :</legend>
+            <div>
+                <label><input type="radio" value="1.0" name="precision" checked />Aucun point du prorotype en contact avec le mur</label>
+            </div>
+            <div>
+                <label><input type="radio" value="0.5" name="precision" />Au moins un point du prorotype en contact avec le mur</label>
+            </div>
+        </fieldset>
+
+        <fieldset id="fs_bonus">
+            <legend>Bonus :</legend>
+            <div>
+                <label><input type="radio" value="300" name="bonus" checked />Rebut à plat entièrement à l'interieur de l'aire</label>
+            </div>
+            <div>
+                <label><input type="radio" value="150" name="bonus" />Un point du rebut est à l'interieur de l'aire</label>
+            </div>
+            <div>
+                <label><input type="radio" value="50" name="bonus" />Un point du rebut posé sur un pylône</label>
+            </div>
+            <div>
+                <label><input type="radio" value="0" name="bonus" />Aucun point d'appui</label>
+            </div>
+            <div>
+                <label><input type="radio" value="0" name="bonus" />Moyen non prévu dans le rapport</label>
+            </div>
+        </fieldset>
+
+        <div style="font-size: x-large; font-weight: bold;">Score : <span id="score"></span></div>
+
+    </div>
+
+    </form>
+
+</body>
+</html>
