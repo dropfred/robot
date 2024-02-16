@@ -36,14 +36,14 @@ window.addEventListener("load", () => {
 
     // P = E * (10 * w * M + x * S) + (120 - t) + 2 * D + y * z * BONUS
     function score() {
-        const f = form.fail.checked;
+        const j = form.job.checked;
         const t = parseFloat(form.time.value);
         const d = parseFloat(form.distance.value);
         const e = parseFloat(form.energy.value);
         const w = parseFloat(form.clean.value);
-        const s = f ? 0 : parseFloat(form.park.value);
+        const s = j ? parseFloat(form.park.value) : 0;
         const x = parseFloat(form.precision.value);
-        const m = f ? 0 : parseFloat(form.mass.value);
+        const m = j ? parseFloat(form.mass.value) : 0;
         const b = parseFloat(form.bonus.value);
         const y = ((10 * w * m) >= 100) ? 1 : 0;
         const z = (t <= 60) ? 1 : (t <= 120) ? 0.5 : 0;
@@ -51,9 +51,9 @@ window.addEventListener("load", () => {
         const score = e * (10 * w * m + x * s) + (120 - Math.min(t, 120)) + 2 * d + y * z * b;
 
         for (const n of ['mass', 'energy', 'clean']) {
-            document.getElementById('fs_' + n).disabled = f;
+            document.getElementById('fs_' + n).disabled = !j;
         }
-        document.getElementById('fs_bonus').disabled = f || ((y * z) === 0);
+        document.getElementById('fs_bonus').disabled = !j || ((y * z) === 0);
 
         form.text_mass.value = form.mass.value + ' g';
         form.text_distance.value = form.distance.value + ' cm';
@@ -77,7 +77,7 @@ window.addEventListener("load", () => {
         <fieldset>
             <legend>Consigne :</legend>
             <div>
-                <label>Aucune tentative de ramassage ou de pesée avant stationnement<input type="checkbox" name="fail" /></label>
+                <label>Tentative de ramassage ou de pesée avant stationnement<input type="checkbox" name="job" checked /></label>
             </div>
         </fieldset>
 
