@@ -45,7 +45,7 @@ window.addEventListener("load", () => {
         const x = parseFloat(form.precision.value);
         const m = j ? parseFloat(form.mass.value) : 0;
         const b = parseFloat(form.bonus.value);
-        const y = ((10 * w * m) >= 100) ? 1 : 0;
+        const y = (((x * s) === 300) && (w === 1) && (m >= 10)) ? 1 : 0;
         const z = (t <= 60) ? 1 : (t <= 120) ? 0.5 : 0;
 
         const score = e * (10 * w * m + x * s) + (120 - Math.min(t, 120)) + 2 * d + y * z * b;
