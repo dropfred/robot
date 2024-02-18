@@ -36,7 +36,7 @@ window.addEventListener("load", () => {
 
     // P = E * (10 * w * M + x * S) + (120 - t) + 2 * D + y * z * BONUS
     function score() {
-        const j = form.job.checked;
+        const j = form.req_1.checked && form.req_2.checked;
         const t = parseFloat(form.time.value);
         const d = parseFloat(form.distance.value);
         const e = parseFloat(form.energy.value);
@@ -44,7 +44,7 @@ window.addEventListener("load", () => {
         const s = j ? parseFloat(form.park.value) : 0;
         const x = parseFloat(form.precision.value);
         const m = j ? parseFloat(form.mass.value) : 0;
-        const b = parseFloat(form.bonus.value);
+        const b = j ? parseFloat(form.bonus.value) : 0;
         const y = (((x * s) === 300) && (w === 1) && (m >= 10)) ? 1 : 0;
         const z = (t <= 60) ? 1 : (t <= 120) ? 0.5 : 0;
 
@@ -77,7 +77,10 @@ window.addEventListener("load", () => {
         <fieldset>
             <legend>Consigne :</legend>
             <div>
-                <label><input type="checkbox" name="job" checked />Tentative de ramassage ou de pesée avant stationnement</label>
+                <label><input type="checkbox" name="req_1" checked />Tentative de ramassage ou de pesée avant stationnement</label>
+            </div>
+            <div>
+                <label><input type="checkbox" name="req_2" checked />Moyen prévu dans le rapport</label>
             </div>
         </fieldset>
 
@@ -165,9 +168,6 @@ window.addEventListener("load", () => {
             </div>
             <div>
                 <label><input type="radio" value="0" name="bonus" />Aucun point d'appui</label>
-            </div>
-            <div>
-                <label><input type="radio" value="0" name="bonus" />Moyen non prévu dans le rapport</label>
             </div>
         </fieldset>
 
