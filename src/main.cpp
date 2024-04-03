@@ -23,14 +23,14 @@ namespace
     } robot
     {
         {
-            WHEEL_FL,
-            WHEEL_FR,
-            WHEEL_RL,
-            WHEEL_RR
-            // {WHEEL_FL_P, WHEEL_FL_N, true},
-            // {WHEEL_FR_P, WHEEL_FR_N},
-            // {WHEEL_RL_P, WHEEL_RL_N, true},
-            // {WHEEL_RR_P, WHEEL_RR_N}
+            MECANUM_FL,
+            MECANUM_FR,
+            MECANUM_RL,
+            MECANUM_RR
+            // {MECANUM_FL_P, MECANUM_FL_N, true},
+            // {MECANUM_FR_P, MECANUM_FR_N},
+            // {MECANUM_RL_P, MECANUM_RL_N, true},
+            // {MECANUM_RR_P, MECANUM_RR_N}
         }
     };
 }
