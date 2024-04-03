@@ -20,7 +20,11 @@ private :
     {
         Motor motor;
         Dir x, y;
+        float speed;
+        float update;
     } wheels[4];
+
+    void update() noexcept;
 
 public :
 
@@ -36,13 +40,13 @@ public :
 
     Mecanum & operator = (Mecanum &&) noexcept = default;
 
-    void move(Dir x, Dir y, float speed) const noexcept;
+    void move(Dir x, Dir y, float speed) noexcept;
 
-    void stop() const noexcept;
+    void stop() noexcept;
 
-    void brake(float force) const noexcept;
+    void brake(float force) noexcept;
 
-    void rotate(float speed) const noexcept;
+    void rotate(float speed) noexcept;
 };
 
 #endif
