@@ -3,6 +3,8 @@
 #include <utility>
 #include <cmath>
 
+#define MECANUM_KICK_DURATION 10
+
 namespace
 {
     Mecanum::Dir operator - (Mecanum::Dir d)
@@ -31,12 +33,12 @@ void Mecanum::update() noexcept
 #ifdef MECANUM_KICK_DURATION
     for (auto & w : wheels)
     {
-        if (std::abs(w.speed) < std::abs(w.update))
+        if (w.update != 0.0f)
         {
             w.motor.run((w.update > 0.0f) ? 1.0f : -1.0f);
         }
-        delay(MECANUM_KICK_DURATION);
     }
+    delay(MECANUM_KICK_DURATION);
 #endif
     for (auto & w : wheels)
     {
