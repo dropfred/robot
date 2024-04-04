@@ -1,5 +1,7 @@
 #include <Arduino.h>
 
+#include <ESP32_Servo.h>
+
 #include "config.h"
 
 #include <mecanum.h>
@@ -20,6 +22,7 @@ namespace
     struct
     {
         Mecanum mec;
+        Servo claw;
     } robot
     {
         {
@@ -89,6 +92,12 @@ void setup()
         {
             robot.mec.stop();
         }
+    });
+
+    XBlue::on_slider("claw", [] (float v)
+    {
+        Serial.printf("claw : %.2f\n", v);
+        robot.claw.write(v * 180);
     });
 
     XBlue::on_toggle("sw0", [] (float v)
@@ -197,6 +206,9 @@ void setup()
         }
     });
 #endif
+
+    robot.claw.attach(CLAW_CMD, 500, 2400);                                       
+    robot.claw.write(0);
 
 #ifdef HM10_SERIAL
     XBlue::start(MEC2105_NAME + " (S)", HM10_SERIAL_RX, HM10_SERIAL_TX);
