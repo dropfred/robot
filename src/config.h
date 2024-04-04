@@ -22,4 +22,7 @@
 #define HM10_SERIAL_TX 23
 #endif
 
+// claw (servo) command pin
+#define CLAW_CMD 22
+
 #endif
