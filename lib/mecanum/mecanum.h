@@ -20,6 +20,7 @@ private :
     {
         Motor motor;
         Dir x, y;
+        // TODO: use analogGetChannel & ledcRead to retreive the current speed
         float speed;
         float update;
     } wheels[4];
