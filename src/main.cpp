@@ -24,38 +24,28 @@ namespace
         Mecanum mec;
         struct
         {
-            struct
-            {
-                Motor up_down;
-            } waste;
+            Motor up_down;
+        } waste;
 
-            struct
-            {
-                Motor up_down;
-                Servo claw;
-            } bonus;
-            
-        } tool;
+        struct
+        {
+            Motor up_down;
+            Servo claw;
+        } bonus;
     } robot
     {
-        {
-            MECANUM_FL,
-            MECANUM_FR,
-            MECANUM_RL,
-            MECANUM_RR
-        },
-        {
-            {TOOL_MAGNET_UPDOWN},
-            {TOOL_BONUS_UPDOWN}
-        }
+        {MECANUM_FL, MECANUM_FR, MECANUM_RL, MECANUM_RR},
+        {TOOL_MAGNET_UPDOWN},
+        {TOOL_BONUS_UPDOWN}
     };
 }
 
 void setup()
 {
-    // TODO : add led during setup to signal reboot ?
+#ifdef DBG_BOOT
     pinMode(DBG_BOOT, OUTPUT);
     digitalWrite(DBG_BOOT, HIGH);
+#endif
 
     Serial.begin(115200);
     delay(1000);
@@ -112,7 +102,7 @@ void setup()
     XBlue::on_slider("claw", [] (float v)
     {
         Serial.printf("claw : %.2f\n", v);
-        robot.tool.bonus.claw.write(v * 180);
+        robot.bonus.claw.write(v * 180);
     });
 
     XBlue::on_toggle("sw0", [] (float v)
@@ -222,8 +212,8 @@ void setup()
     });
 #endif
 
-    robot.tool.bonus.claw.attach(TOOL_BONUS_CLAW, 500, 2400);                                       
-    robot.tool.bonus.claw.write(0);
+    robot.bonus.claw.attach(TOOL_BONUS_CLAW, 500, 2400);                                       
+    robot.bonus.claw.write(0);
 
 #ifdef HM10_SERIAL
     XBlue::start(MEC2105_NAME + " (S)", HM10_SERIAL_RX, HM10_SERIAL_TX);
@@ -232,7 +222,10 @@ void setup()
 #endif
 
     Serial.println((MEC2105_NAME + " started").c_str());
+
+#ifdef DBG_BOOT
     digitalWrite(DBG_BOOT, LOW);
+#endif
 }
 
 void loop()
