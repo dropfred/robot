@@ -34,9 +34,12 @@ namespace
         } bonus;
     } robot
     {
-        {MECANUM_FL, MECANUM_FR, MECANUM_RL, MECANUM_RR},
-        {TOOL_MAGNET_UPDOWN},
-        {TOOL_BONUS_UPDOWN}
+        {
+            MECANUM_FRONT_LEFT, MECANUM_FRONT_RIGHT,
+            MECANUM_REAR_LEFT , MECANUM_REAR_RIGHT
+        },
+        {MAGNET_UPDOWN},
+        {BONUS_UPDOWN/*, BONUS_CLAW*/}
     };
 }
 
@@ -212,7 +215,7 @@ void setup()
     });
 #endif
 
-    robot.bonus.claw.attach(TOOL_BONUS_CLAW, 500, 2400);                                       
+    robot.bonus.claw.attach(BONUS_CLAW, 500, 2400);                                       
     robot.bonus.claw.write(0);
 
 #ifdef HM10_SERIAL

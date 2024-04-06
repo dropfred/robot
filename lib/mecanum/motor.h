@@ -128,10 +128,6 @@ public:
 
     ~Motor() noexcept
     {
-        // if (release)
-        //{
-        //     release();
-        // }
     }
 
     Motor & operator = (Motor const & m) = delete;
@@ -142,7 +138,7 @@ public:
         return *this;
     }
 
-    void run(float speed = 1.0) const noexcept
+    void run(float speed = 1.0f) const noexcept
     {
         drive.run(speed);
     }
