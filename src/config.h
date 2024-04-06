@@ -19,11 +19,11 @@
 #define MECANUM_SPEED_HIGH 1.0f
 
 // tools (motor driver) pins
-#define MAGNET_UPDOWN {4, 21, false, 1.0f, false}
+#define MAGNET_UPDOWN {22, 21, false, 1.0f, false}
 #define BONUS_UPDOWN {27, 13, false, 1.0f, false}
 
 // claw (servo) command pin
-#define BONUS_CLAW 22
+#define BONUS_CLAW 4
 
 // bluetooth / serial module pins
 #ifdef HM10_SERIAL
