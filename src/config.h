@@ -1,6 +1,8 @@
 #ifndef ROBOT_CONFIG_H
 #define ROBOT_CONFIG_H
 
+#define SLIDER_THRESHOLD 0.5f
+
 // wheels (motor driver) pins
 #define MECANUM_FRONT_LEFT {26, 25, true}
 #define MECANUM_FRONT_RIGHT {17, 16, false}
@@ -17,7 +19,7 @@
 #define MECANUM_SPEED_HIGH 1.0f
 
 // tools (motor driver) pins
-#define MAGNET_UPDOWN {4, 2, false, 1.0f, false}
+#define MAGNET_UPDOWN {4, 21, false, 1.0f, false}
 #define BONUS_UPDOWN {27, 13, false, 1.0f, false}
 
 // claw (servo) command pin
@@ -30,6 +32,6 @@
 #endif
 
 // boot led pin
-#define DBG_BOOT 21
+#define DBG_BOOT 2
 
 #endif

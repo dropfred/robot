@@ -25,7 +25,7 @@ namespace
         struct
         {
             Motor up_down;
-        } waste;
+        } magnet;
 
         struct
         {
@@ -92,13 +92,43 @@ void setup()
         Serial.printf("sl0 : %.2f\n", v);
         // rotate
         v = v * 2 - 1;
-        if (std::abs(v) > MECANUM_SPEED_LOW)
+        if (std::abs(v) > SLIDER_THRESHOLD)
         {
             robot.mec.rotate(v);
         }
         else
         {
             robot.mec.stop();
+        }
+    });
+
+    XBlue::on_slider("mud", [] (float v)
+    {
+        Serial.printf("magnet : %.2f\n", v);
+        // rotate
+        v = v * 2 - 1;
+        if (std::abs(v) > SLIDER_THRESHOLD)
+        {
+            robot.magnet.up_down.run(v);
+        }
+        else
+        {
+            robot.magnet.up_down.stop();
+        }
+    });
+
+    XBlue::on_slider("bud", [] (float v)
+    {
+        Serial.printf("bonus : %.2f\n", v);
+        // rotate
+        v = v * 2 - 1;
+        if (std::abs(v) > SLIDER_THRESHOLD)
+        {
+            robot.bonus.up_down.run(v);
+        }
+        else
+        {
+            robot.bonus.up_down.stop();
         }
     });
 
