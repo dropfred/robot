@@ -41,6 +41,25 @@ namespace
         {MAGNET_UPDOWN},
         {BONUS_UPDOWN/*, BONUS_CLAW*/}
     };
+
+    TaskHandle_t Task1;
+    uint8_t current = 0;
+    uint8_t target = 0;
+    #define SMOOTH_SERVO_DELAY 7
+
+    void smooth_servo(void * p)
+    {
+        while (true)
+        {
+            if (current != target)
+            {
+                current += (current < target) ? 1 : -1;
+                // Serial.printf("current=%d\n", current);
+                robot.bonus.claw.write(current);
+            }
+            delay(SMOOTH_SERVO_DELAY);
+        }
+    }
 }
 
 void setup()
@@ -134,8 +153,9 @@ void setup()
 
     XBlue::on_slider("claw", [] (float v)
     {
-        Serial.printf("claw : %.2f\n", v);
-        robot.bonus.claw.write(v * 180);
+        // Serial.printf("claw : %.2f\n", v);
+        // robot.bonus.claw.write(v * 180);
+        target = v * 180;
     });
 
     XBlue::on_toggle("sw0", [] (float v)
@@ -245,7 +265,17 @@ void setup()
     });
 #endif
 
-    robot.bonus.claw.attach(BONUS_CLAW, 500, 2400);                                       
+    robot.bonus.claw.attach(BONUS_CLAW, 500, 2400);
+    xTaskCreatePinnedToCore
+    (
+        smooth_servo,
+        "SmoothServo",
+        10000,
+        NULL,
+        1,
+        &Task1,
+        0
+    );
     robot.bonus.claw.write(0);
 
 #ifdef HM10_SERIAL
@@ -265,9 +295,13 @@ void loop()
 {
 #ifdef HM10_SERIAL
     XBlue::update();
-    delay(10);
-#else
-    // do nothing
-    delay(1000);
 #endif
+
+    // if (current != target)
+    // {
+    //     current += (current < target) ? 1 : -1;
+    //     Serial.printf("current=%d\n", current);
+    //     robot.bonus.claw.write(current);
+    // }
+    // delay(5);
 }
