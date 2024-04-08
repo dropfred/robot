@@ -42,20 +42,26 @@ namespace
         {BONUS_UPDOWN/*, BONUS_CLAW*/}
     };
 
-    TaskHandle_t Task1;
-    uint8_t current = 0;
-    uint8_t target = 0;
+    #define SMOOTH_SERVO_STACK 1024
     #define SMOOTH_SERVO_DELAY 7
+
+    struct
+    {
+        TaskHandle_t task;
+        uint8_t current = 0;
+        uint8_t target = 0;
+    } smooth {};
 
     void smooth_servo(void * p)
     {
+        // uxTaskGetStackHighWaterMark(NULL)
         while (true)
         {
-            if (current != target)
+            if (smooth.current != smooth.target)
             {
-                current += (current < target) ? 1 : -1;
+                smooth.current += (smooth.current < smooth.target) ? 1 : -1;
                 // Serial.printf("current=%d\n", current);
-                robot.bonus.claw.write(current);
+                robot.bonus.claw.write(smooth.current);
             }
             delay(SMOOTH_SERVO_DELAY);
         }
@@ -155,18 +161,18 @@ void setup()
     {
         // Serial.printf("claw : %.2f\n", v);
         // robot.bonus.claw.write(v * 180);
-        target = v * 180;
+        smooth.target = v * 180;
     });
 
-    XBlue::on_toggle("sw0", [] (float v)
-    {
-        Serial.printf("sw0 : %s\n", v ? "on" : "off");
-    });
+    // XBlue::on_toggle("sw0", [] (float v)
+    // {
+    //     Serial.printf("sw0 : %s\n", v ? "on" : "off");
+    // });
 
-    XBlue::on_text("t0", [] (std::string const & txt)
-    {
-        Serial.printf("t0 : %s\n", txt.c_str());
-    });
+    // XBlue::on_text("t0", [] (std::string const & txt)
+    // {
+    //     Serial.printf("t0 : %s\n", txt.c_str());
+    // });
 
     auto drive = [] (float x, float y)
     {
@@ -270,10 +276,10 @@ void setup()
     (
         smooth_servo,
         "SmoothServo",
-        10000,
+        SMOOTH_SERVO_STACK,
         NULL,
         1,
-        &Task1,
+        &smooth.task,
         0
     );
     robot.bonus.claw.write(0);
@@ -296,12 +302,4 @@ void loop()
 #ifdef HM10_SERIAL
     XBlue::update();
 #endif
-
-    // if (current != target)
-    // {
-    //     current += (current < target) ? 1 : -1;
-    //     Serial.printf("current=%d\n", current);
-    //     robot.bonus.claw.write(current);
-    // }
-    // delay(5);
 }
