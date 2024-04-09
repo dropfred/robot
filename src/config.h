@@ -34,4 +34,7 @@
 // boot led pin
 #define DBG_BOOT 2
 
+// disable burnout
+// #define MEC2105_DISABLE_BURNOUT_DETECTOR
+
 #endif

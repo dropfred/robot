@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
-#include <ESP32_Servo.h>
+// #include <ESP32_Servo.h>
+#include <Servo.h>
 
 #include "config.h"
 
@@ -9,7 +10,6 @@
 
 #include <algorithm>
 
-// #define MEC2105_DISABLE_BURNOUT_DETECTOR
 #ifdef MEC2105_DISABLE_BURNOUT_DETECTOR
 #include <soc/soc.h>
 #include <soc/rtc_cntl_reg.h>
@@ -39,7 +39,7 @@ namespace
             MECANUM_REAR_LEFT , MECANUM_REAR_RIGHT
         },
         {MAGNET_UPDOWN},
-        {BONUS_UPDOWN/*, BONUS_CLAW*/}
+        {BONUS_UPDOWN, BONUS_CLAW}
     };
 
     #define SMOOTH_SERVO_STACK 1024
