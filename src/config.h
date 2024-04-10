@@ -28,10 +28,12 @@
 // bluetooth / serial module pins
 #ifdef HM10_SERIAL
 #define HM10_SERIAL_RX 35
-#define HM10_SERIAL_TX 23
+#define HM10_SERIAL_TX 13
 #endif
 
 // boot led pin
 #define MEC2105_DBG_BOOT 2
+
+// #define MEC2105_DISABLE_BURNOUT_DETECTOR
 
 #endif

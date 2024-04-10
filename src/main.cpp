@@ -9,7 +9,6 @@
 
 #include <algorithm>
 
-// #define MEC2105_DISABLE_BURNOUT_DETECTOR
 #ifdef MEC2105_DISABLE_BURNOUT_DETECTOR
 #include <soc/soc.h>
 #include <soc/rtc_cntl_reg.h>
@@ -41,6 +40,31 @@ namespace
         {MAGNET_UPDOWN},
         {BONUS_UPDOWN/*, BONUS_CLAW*/}
     };
+
+    #define SMOOTH_SERVO_STACK 1024
+    #define SMOOTH_SERVO_DELAY 10
+
+    struct
+    {
+        TaskHandle_t task;
+        uint8_t current = 0;
+        uint8_t target = 0;
+    } smooth {};
+
+    void smooth_servo(void * p)
+    {
+        // uxTaskGetStackHighWaterMark(NULL)
+        while (true)
+        {
+            if (smooth.current != smooth.target)
+            {
+                smooth.current += (smooth.current < smooth.target) ? 1 : -1;
+                // Serial.printf("current=%d\n", current);
+                robot.bonus.claw.write(smooth.current);
+            }
+            delay(SMOOTH_SERVO_DELAY);
+        }
+    }
 }
 
 void setup()
@@ -134,19 +158,20 @@ void setup()
 
     XBlue::on_slider("claw", [] (float v)
     {
-        Serial.printf("claw : %.2f\n", v);
-        robot.bonus.claw.write(v * 180);
+        // Serial.printf("claw : %.2f\n", v);
+        // robot.bonus.claw.write(v * 180);
+    smooth.target = v * 180;
     });
 
-    XBlue::on_toggle("sw0", [] (float v)
-    {
-        Serial.printf("sw0 : %s\n", v ? "on" : "off");
-    });
+    // XBlue::on_toggle("sw0", [] (float v)
+    // {
+    //     Serial.printf("sw0 : %s\n", v ? "on" : "off");
+    // });
 
-    XBlue::on_text("t0", [] (std::string const & txt)
-    {
-        Serial.printf("t0 : %s\n", txt.c_str());
-    });
+    // XBlue::on_text("t0", [] (std::string const & txt)
+    // {
+    //     Serial.printf("t0 : %s\n", txt.c_str());
+    // });
 
     auto drive = [] (float x, float y)
     {
@@ -246,6 +271,17 @@ void setup()
 #endif
 
     robot.bonus.claw.attach(BONUS_CLAW, 500, 2400);                                       
+    xTaskCreatePinnedToCore
+    (
+        smooth_servo,
+        "SmoothServo",
+        SMOOTH_SERVO_STACK,
+        NULL,
+        1,
+        &smooth.task,
+        0
+    );
+    // smooth.current = smooth.target = robot.bonus.claw.read();
     robot.bonus.claw.write(0);
 
 #ifdef HM10_SERIAL
@@ -265,9 +301,5 @@ void loop()
 {
 #ifdef HM10_SERIAL
     XBlue::update();
-    delay(10);
-#else
-    // do nothing
-    delay(1000);
 #endif
 }
