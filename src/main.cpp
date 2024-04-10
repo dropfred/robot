@@ -45,9 +45,9 @@ namespace
 
 void setup()
 {
-#ifdef DBG_BOOT
-    pinMode(DBG_BOOT, OUTPUT);
-    digitalWrite(DBG_BOOT, HIGH);
+#ifdef MEC2105_DBG_BOOT
+    pinMode(MEC2105_DBG_BOOT, OUTPUT);
+    digitalWrite(MEC2105_DBG_BOOT, HIGH);
 #endif
 
     Serial.begin(115200);
@@ -256,8 +256,8 @@ void setup()
 
     Serial.println((MEC2105_NAME + " started").c_str());
 
-#ifdef DBG_BOOT
-    digitalWrite(DBG_BOOT, LOW);
+#ifdef MEC2105_DBG_BOOT
+    digitalWrite(MEC2105_DBG_BOOT, LOW);
 #endif
 }
 
