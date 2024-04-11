@@ -16,7 +16,7 @@
 
 namespace
 {
-    std::string const MEC2105_NAME {"MEC2105-04"};
+    std::string const MEC2105_NAME {"MEC2105-44"};
 
     struct
     {
@@ -82,26 +82,26 @@ void setup()
     // Serial.println("Bournout detector disabled");
 #endif
 
-#ifndef HM10_SERIAL
-    {
-        uint8_t mac[6];
+// #ifndef HM10_SERIAL
+//     {
+//         uint8_t mac[6];
 
-        esp_read_mac(mac, ESP_MAC_BT);
-        Serial.print("Bluetooth MAC : ");
-        for (size_t i = 0; i < 6; ++i)
-        {
-            if (i > 0) Serial.print(":");
-            Serial.printf("%02X", mac[i]);
-        }
-        Serial.println("");
-    }
-#endif
+//         esp_read_mac(mac, ESP_MAC_BT);
+//         Serial.print("Bluetooth MAC : ");
+//         for (size_t i = 0; i < 6; ++i)
+//         {
+//             if (i > 0) Serial.print(":");
+//             Serial.printf("%02X", mac[i]);
+//         }
+//         Serial.println("");
+//     }
+// #endif
 
 #if defined (XBLUE_MICRO)
-    XBlue::on_button("b0", [] (bool v)
-    {
-        Serial.printf("b0 : %s\n", v ? "on" : "off");
-    });
+    // XBlue::on_button("b0", [] (bool v)
+    // {
+    //     Serial.printf("b0 : %s\n", v ? "on" : "off");
+    // });
 
     // auto button = [] (std::string const & name, bool v)
     // {
@@ -160,7 +160,7 @@ void setup()
     {
         // Serial.printf("claw : %.2f\n", v);
         // robot.bonus.claw.write(v * 180);
-    smooth.target = v * 180;
+        smooth.target = v * 180;
     });
 
     // XBlue::on_toggle("sw0", [] (float v)
