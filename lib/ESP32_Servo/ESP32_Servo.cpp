@@ -85,22 +85,27 @@ Servo::Servo()
             this->servoChannel = ++ServoCount;   // assign a servo channel number to this instance
             ChannelUsed[this->servoChannel] = 1;
         }
-        else 
+        else
         {
             this->servoChannel = 0;  // too many servos in use
         }
     }
     // if we got a channel either way, finish initializing it
     if (this->servoChannel > 0)
-    {            
+    {
         // initialize this channel with plausible values, except pin # (we set pin # when attached)
-        this->ticks = DEFAULT_PULSE_WIDTH_TICKS;   
+        this->ticks = DEFAULT_PULSE_WIDTH_TICKS;
         this->timer_width = DEFAULT_TIMER_WIDTH;
-        this->pinNumber = -1;     // make it clear that we haven't attached a pin to this channel 
+        this->pinNumber = -1;     // make it clear that we haven't attached a pin to this channel
         this->min = DEFAULT_uS_LOW;
         this->max = DEFAULT_uS_HIGH;
         this->timer_width_ticks = pow(2,this->timer_width);
     }
+}
+
+Servo::Servo(int pin, int min, int max) : Servo()
+{
+    attach(pin, min, max);
 }
 
 int Servo::attach(int pin)
@@ -109,9 +114,9 @@ int Servo::attach(int pin)
 }
 
 int Servo::attach(int pin, int min, int max)
-{    
+{
     if ((this->servoChannel <= MAX_SERVOS) && (this->servoChannel > 0))
-    { 
+    {
         // Recommend only the following pins 2,4,12-19,21-23,25-27,32-33 (enforcement commented out)
         //if ((pin == 2) || (pin ==4) || ((pin >= 12) && (pin <= 19)) || ((pin >= 21) && (pin <= 23)) ||
         //        ((pin >= 25) && (pin <= 27)) || (pin == 32) || (pin == 33))
@@ -132,7 +137,7 @@ int Servo::attach(int pin, int min, int max)
         //    return 0;
         //}
 
-        // min/max checks 
+        // min/max checks
         if (min < MIN_PULSE_WIDTH)          // ensure pulse width is valid
             min = MIN_PULSE_WIDTH;
         if (max > MAX_PULSE_WIDTH)
@@ -142,9 +147,10 @@ int Servo::attach(int pin, int min, int max)
         // Set up this channel
         // if you want anything other than default timer width, you must call setTimerWidth() before attach
         ledcSetup(this->servoChannel, REFRESH_CPS, this->timer_width); // channel #, 50 Hz, timer width
-        ledcAttachPin(this->pinNumber, this->servoChannel);   // GPIO pin assigned to channel        
+        ledcAttachPin(this->pinNumber, this->servoChannel);   // GPIO pin assigned to channel
+        return this->servoChannel;
     }
-    else return 0;  
+    else return 0;
 }
 
 void Servo::detach()
@@ -199,7 +205,7 @@ int Servo::readMicroseconds()
 {
     int pulsewidthUsec;
     if ((this->servoChannel <= MAX_SERVOS) && (this->attached()))
-    { 
+    {
         pulsewidthUsec = ticksToUs(this->ticks);
     }
     else
@@ -222,7 +228,7 @@ void Servo::setTimerWidth(int value)
         value = 16;
     else if (value > 20)
         value = 20;
-        
+
     // Fix the current ticks value after timer width change
     // The user can reset the tick value with a write() or writeUs()
     int widthDifference = this->timer_width - value;
@@ -235,10 +241,10 @@ void Servo::setTimerWidth(int value)
     {
         this->ticks >> widthDifference;
     }
-    
+
     this->timer_width = value;
     this->timer_width_ticks = pow(2,this->timer_width);
-    
+
     // If this is an attached servo, clean up
     if ((this->servoChannel <= MAX_SERVOS) && (this->attached()))
     {
@@ -246,7 +252,7 @@ void Servo::setTimerWidth(int value)
         ledcDetachPin(this->pinNumber);
         ledcSetup(this->servoChannel, REFRESH_CPS, this->timer_width);
         ledcAttachPin(this->pinNumber, this->servoChannel);
-    }        
+    }
 }
 
 int Servo::readTimerWidth()
@@ -256,12 +262,11 @@ int Servo::readTimerWidth()
 
 int Servo::usToTicks(int usec)
 {
-    return (int)((float)usec / ((float)REFRESH_USEC / (float)this->timer_width_ticks));   
+    return (int)((float)usec / ((float)REFRESH_USEC / (float)this->timer_width_ticks));
 }
 
 int Servo::ticksToUs(int ticks)
 {
-    return (int)((float)ticks * ((float)REFRESH_USEC / (float)this->timer_width_ticks)); 
+    return (int)((float)ticks * ((float)REFRESH_USEC / (float)this->timer_width_ticks));
 }
 
- 

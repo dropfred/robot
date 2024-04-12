@@ -113,6 +113,7 @@
 class Servo
 {
 public:
+  Servo(int pin, int min = 500, int max = 2400);
   Servo();
   // Arduino Servo Library calls
   int attach(int pin);                   // attach the given pin to the next free channel, returns channel number or 0 if failure

@@ -38,7 +38,7 @@ namespace
             MECANUM_REAR_LEFT , MECANUM_REAR_RIGHT
         },
         {MAGNET_UPDOWN},
-        {BONUS_UPDOWN/*, BONUS_CLAW*/}
+        {BONUS_UPDOWN, BONUS_CLAW}
     };
 
     #define SMOOTH_SERVO_STACK 1024
@@ -98,19 +98,6 @@ void setup()
 // #endif
 
 #if defined (XBLUE_MICRO)
-    // XBlue::on_button("b0", [] (bool v)
-    // {
-    //     Serial.printf("b0 : %s\n", v ? "on" : "off");
-    // });
-
-    // auto button = [] (std::string const & name, bool v)
-    // {
-    //     Serial.printf("button %s : %s\n", name.c_str(), v ? "on" : "off");
-    // };
-
-    // XBlue::on_button("b1", button);
-    // XBlue::on_button("b2", button);
-
     XBlue::on_slider("sl0", [] (float v)
     {
         Serial.printf("sl0 : %.2f\n", v);
@@ -163,16 +150,6 @@ void setup()
         smooth.target = v * 180;
     });
 
-    // XBlue::on_toggle("sw0", [] (float v)
-    // {
-    //     Serial.printf("sw0 : %s\n", v ? "on" : "off");
-    // });
-
-    // XBlue::on_text("t0", [] (std::string const & txt)
-    // {
-    //     Serial.printf("t0 : %s\n", txt.c_str());
-    // });
-
     auto drive = [] (float x, float y)
     {
         // auto dx = (x < -MECANUM_SPEED_LOW) ? Mecanum::Dir::N : (x > MECANUM_SPEED_LOW) ? Mecanum::Dir::P : Mecanum::Dir::Z;
@@ -196,13 +173,6 @@ void setup()
             {
                 s = MECANUM_SPEED_HIGH;
             }
-            // auto dir = [] (Mecanum::Dir d)
-            // {
-            //     return (d == Mecanum::Dir::P) ? "P"
-            //          : (d == Mecanum::Dir::N) ? "N"
-            //          :                          "Z";
-            // };
-            // Serial.printf("drive : %.2f / %.2f -> %s / %s (%.2f)\n", x, y, dir(dx), dir(dy), s);
             robot.mec.move(dx, dy, s);
         }
         else
@@ -270,7 +240,7 @@ void setup()
     });
 #endif
 
-    robot.bonus.claw.attach(BONUS_CLAW, 500, 2400);                                       
+    // robot.bonus.claw.attach(BONUS_CLAW, 500, 2400);
     xTaskCreatePinnedToCore
     (
         smooth_servo,
