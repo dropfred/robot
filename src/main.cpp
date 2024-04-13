@@ -103,7 +103,7 @@ void setup()
         Serial.printf("sl0 : %.2f\n", v);
         // rotate
         v = v * 2 - 1;
-        if (std::abs(v) > SLIDER_THRESHOLD)
+        if (std::abs(v) > MECANUM_SPEED_LOW)
         {
             robot.mec.rotate(v);
         }
@@ -218,13 +218,13 @@ void setup()
         {
             y = (throttle > 0.0f) ? Mecanum::Dir::P : Mecanum::Dir::N;
         }
-        auto dir = [] (Mecanum::Dir d)
-        {
-            return (d == Mecanum::Dir::P) ? "P"
-                 : (d == Mecanum::Dir::N) ? "N"
-                 :                          "Z";
-        };
-        Serial.printf("drive : %.2f / %.2f -> %s / %s (%.2f)\n", throttle, steering, dir(x), dir(y), d);
+        // auto dir = [] (Mecanum::Dir d)
+        // {
+        //     return (d == Mecanum::Dir::P) ? "P"
+        //          : (d == Mecanum::Dir::N) ? "N"
+        //          :                          "Z";
+        // };
+        // Serial.printf("drive : %.2f / %.2f -> %s / %s (%.2f)\n", throttle, steering, dir(x), dir(y), d);
         if (d > MECANUM_SPEED_LOW)
         {
             if (d > MECANUM_SPEED_HIGH)
