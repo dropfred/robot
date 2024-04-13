@@ -13,52 +13,54 @@
 #define HM10_SERIAL_TIMEOUT 10
 #endif
 
-namespace
-{
-    struct
-    {
-        std::string name;
-        uint8_t rx, tx;
-    } hm10 {};
+// namespace
+// {
+//     struct
+//     {
+//         std::string name;
+//         uint8_t rx, tx;
+//     } hm10 {};
     
-    void connect()
-    {
-        pinMode(hm10.rx, INPUT);
-        pinMode(hm10.tx, OUTPUT);
-        HM10_SERIAL_STREAM.begin(9600, SERIAL_8N1, hm10.rx, hm10.tx);
-        delay(500);
-        HM10_SERIAL_STREAM.println(("AT+NAME" + hm10.name).c_str());
-        delay(500);
-    }
-}
+//     void connect()
+//     {
+//         // HM10_SERIAL_STREAM.end();
+//         pinMode(hm10.rx, INPUT);
+//         pinMode(hm10.tx, OUTPUT);
+//         HM10_SERIAL_STREAM.begin(9600, SERIAL_8N1, hm10.rx, hm10.tx);
+//         delay(500);
+//         HM10_SERIAL_STREAM.println(("AT+NAME" + hm10.name).c_str());
+//         delay(500);
+//     }
+// }
 
 HM10::WriteCb write_cb {};
 
 bool HM10::start(std::string const & name, uint8_t rx, uint8_t tx, WriteCb cb)
 {
     write_cb = cb;
-    // pinMode(rx, INPUT);
-    // pinMode(tx, OUTPUT);
-    // HM10_SERIAL_STREAM.begin(9600, SERIAL_8N1, rx, tx);
-    // delay(500);
-    // HM10_SERIAL_STREAM.println(("AT+NAME" + name).c_str());
-    // delay(500);
-    hm10.name = name; hm10.rx = rx; hm10.tx = tx;
-    connect();
+    // hm10.name = name; hm10.rx = rx; hm10.tx = tx;
+    // connect();
+    pinMode(rx, INPUT);
+    pinMode(tx, OUTPUT);
+    HM10_SERIAL_STREAM.begin(9600, SERIAL_8N1, rx, tx);
+    delay(500);
+    HM10_SERIAL_STREAM.println(("AT+NAME" + name).c_str());
 
     return true;
 }
 
 void HM10::stop()
 {
+    HM10_SERIAL_STREAM.end();
 }
 
 void HM10::update()
 {
-    if (!HM10_SERIAL_STREAM)
-    {
-        connect();
-    }
+    // HM10_SERIAL_STREAM is always true ?
+    // if (!HM10_SERIAL_STREAM)
+    // {
+    //     connect();
+    // }
 
     std::array<uint8_t, 20> buffer {};
     size_t size = 0;
@@ -84,11 +86,11 @@ void HM10::update()
     }
 }
 
-void HM10::onWrite(WriteCb cb)
+bool HM10::send(uint8_t const * data, size_t size)
 {
-    write_cb = cb;
+    // TODO
+    return false;
 }
-
 #else
 #include <BLEDevice.h>
 #include <BLEServer.h>
@@ -222,11 +224,13 @@ bool HM10::send(uint8_t const * data, size_t size)
     if (ok)
     {
         // setValue takes non const data (wtf?)
+        // ugly un-const cast, technically ub
         characteristic->setValue(const_cast<uint8_t *>(data), size);
         characteristic->notify(true);
     }
     return ok;
 }
+#endif
 
 bool HM10::send(std::string const & data)
 {
@@ -237,4 +241,3 @@ void HM10::onWrite(WriteCb cb)
 {
     write_cb = cb;
 }
-#endif

@@ -7,25 +7,17 @@
 #include <cstdint>
 #include <cstddef>
 
-#ifdef HM10_SERIAL
 namespace HM10
 {
     using WriteCb = std::function<void (uint8_t const *, size_t)>;
-    
+
+#ifdef HM10_SERIAL
     bool start(std::string const & name, uint8_t rx, uint8_t tx, WriteCb cb = nullptr);
 
-    void stop();
-
     void update();
-
-    void onWrite(WriteCb cb);
-}
 #else
-namespace HM10
-{
-    using WriteCb = std::function<void (uint8_t const *, size_t)>;
-    
     bool start(std::string const & name, WriteCb cb = nullptr);
+#endif
 
     void stop();
 
@@ -41,7 +33,6 @@ namespace HM10
 
     void onWrite(WriteCb cb);
 }
-#endif
 
 #if 0
 class HM10Stream : public Stream
