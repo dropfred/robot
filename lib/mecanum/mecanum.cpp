@@ -3,6 +3,8 @@
 #include <utility>
 #include <cmath>
 
+#define MECANUM_KICK 5
+
 namespace
 {
     Mecanum::Dir operator - (Mecanum::Dir d)
@@ -29,14 +31,20 @@ Mecanum::~Mecanum() noexcept {}
 void Mecanum::update() noexcept
 {
 #ifdef MECANUM_KICK
+    bool k = false;
     for (auto & w : wheels)
     {
-        if (w.update != 0.0f)
+        float r = (w.update > w.speed) ? 1.0f : (w.update < w.speed) ? -1.0f : 0.0f;
+        if (r != 0.0f)
         {
-            w.motor.run((w.update > 0.0f) ? 1.0f : -1.0f);
+            w.motor.run(r);
+            k = true;
         }
     }
-    delay(MECANUM_KICK);
+    if (k)
+    {
+        delay(MECANUM_KICK);
+    }
 #endif
     for (auto & w : wheels)
     {

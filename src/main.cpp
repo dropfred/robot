@@ -152,28 +152,11 @@ void setup()
 
     auto drive = [] (float x, float y)
     {
-        // auto dx = (x < -MECANUM_SPEED_LOW) ? Mecanum::Dir::N : (x > MECANUM_SPEED_LOW) ? Mecanum::Dir::P : Mecanum::Dir::Z;
-        // auto dy = (y < -MECANUM_SPEED_LOW) ? Mecanum::Dir::N : (y > MECANUM_SPEED_LOW) ? Mecanum::Dir::P : Mecanum::Dir::Z;
-        // if ((dx != Mecanum::Dir::Z) || (dy != Mecanum::Dir::Z))
-        // {
-        //     float s = std::sqrt(x * x + y * y);
-        //     robot.mec.move(dx, dy, s);
-        // }
-        // else
-        // {
-        //     robot.mec.stop();
-        // }
-
-        float s = std::sqrt(x * x + y * y);
-        if (s > MECANUM_SPEED_LOW)
+        auto dx = (x < -MECANUM_SPEED_LOW) ? Mecanum::Dir::N : (x > MECANUM_SPEED_LOW) ? Mecanum::Dir::P : Mecanum::Dir::Z;
+        auto dy = (y < -MECANUM_SPEED_LOW) ? Mecanum::Dir::N : (y > MECANUM_SPEED_LOW) ? Mecanum::Dir::P : Mecanum::Dir::Z;
+        if ((dx != Mecanum::Dir::Z) || (dy != Mecanum::Dir::Z))
         {
-            auto dx = (x < -0.3f) ? Mecanum::Dir::N : (x > 0.3f) ? Mecanum::Dir::P : Mecanum::Dir::Z;
-            auto dy = (y < -0.3f) ? Mecanum::Dir::N : (y > 0.3f) ? Mecanum::Dir::P : Mecanum::Dir::Z;
-            if (s > MECANUM_SPEED_HIGH)
-            {
-                s = MECANUM_SPEED_HIGH;
-            }
-            robot.mec.move(dx, dy, s);
+            robot.mec.move(dx, dy, std::sqrt(x * x + y * y));
         }
         else
         {
