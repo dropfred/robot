@@ -12,7 +12,7 @@
 #define MECANUM_SPEED_LOW  0.5f
 #define MECANUM_SPEED_HIGH 1.0f
 // #define MECANUM_SPEED_PAD 0.8f
-// #define MECANUM_KICK 10
+// #define MECANUM_KICK 25
 
 // tools (motor driver) pins
 #define MAGNET_UPDOWN {23, 22, false, 1.0f, false}
@@ -28,8 +28,14 @@
 #endif
 
 // boot led pin
-#define MEC2105_DBG_BOOT 2
+#define MEC2105_DBG_SETUP 2
 
 // #define MEC2105_DISABLE_BURNOUT_DETECTOR
+
+#define MEC2105_KEYPAD_ROTATE
+
+#define MEC2105_STEP 50
+
+#define MEC2105_BRAKE 10
 
 #endif

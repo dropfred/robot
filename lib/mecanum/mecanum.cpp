@@ -20,7 +20,7 @@ Mecanum::Mecanum(Motor && fl, Motor && fr, Motor && rl, Motor && rr) noexcept :
         {std::move(fr), Dir::N, Dir::P},
         {std::move(rl), Dir::N, Dir::P},
         {std::move(rr), Dir::P, Dir::P}
-    }
+    }, moving(false)
 {
 }
 
@@ -38,10 +38,19 @@ void Mecanum::update() noexcept
     }
     delay(MECANUM_KICK);
 #endif
+    moving = false;
     for (auto & w : wheels)
     {
         w.speed = w.update;
-        w.motor.run(w.speed);
+        if (w.speed > 0.0f)
+        {
+            w.motor.run(w.speed);
+            moving = true;
+        }
+        else
+        {
+            w.motor.stop();
+        }
     }
 }
 
@@ -82,6 +91,7 @@ void Mecanum::brake(float force) noexcept
     {
         w.speed = w.update = 0.0f;
         w.motor.brake(force);
+        moving = false;
     }
 }
 
@@ -94,4 +104,9 @@ void Mecanum::rotate(float speed) noexcept
         r = -r;
     }
     update();
+}
+
+bool Mecanum::is_moving() const noexcept
+{
+    return moving;
 }

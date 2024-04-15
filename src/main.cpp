@@ -69,9 +69,9 @@ namespace
 
 void setup()
 {
-#ifdef MEC2105_DBG_BOOT
-    pinMode(MEC2105_DBG_BOOT, OUTPUT);
-    digitalWrite(MEC2105_DBG_BOOT, HIGH);
+#ifdef MEC2105_DBG_SETUP
+    pinMode(MEC2105_DBG_SETUP, OUTPUT);
+    digitalWrite(MEC2105_DBG_SETUP, HIGH);
 #endif
 
     Serial.begin(115200);
@@ -98,14 +98,17 @@ void setup()
 // #endif
 
 #if defined (XBLUE_MICRO)
-    XBlue::on_slider("sl0", [] (float v)
+    XBlue::on_slider("sl0", [] (float s)
     {
-        Serial.printf("sl0 : %.2f\n", v);
-        // rotate
-        v = v * 2 - 1;
-        if (std::abs(v) > MECANUM_SPEED_LOW)
+        // Serial.printf("sl0 : %.2f\n", s);
+        s = s * 2.0f - 1.0f;
+        if (std::abs(s) > MECANUM_SPEED_LOW)
         {
-            robot.mec.rotate(v);
+#ifdef MEC2105_KEYPAD_ROTATE
+            robot.mec.move((s > 0.0f) ? Mecanum::Dir::P : Mecanum::Dir::N, Mecanum::Dir::Z, s);
+#else
+            robot.mec.rotate(s);
+#endif
         }
         else
         {
@@ -115,8 +118,7 @@ void setup()
 
     XBlue::on_slider("mud", [] (float v)
     {
-        Serial.printf("magnet : %.2f\n", v);
-        // rotate
+        // Serial.printf("magnet : %.2f\n", v);
         v = v * 2 - 1;
         if (std::abs(v) > SLIDER_THRESHOLD)
         {
@@ -130,8 +132,7 @@ void setup()
 
     XBlue::on_slider("bud", [] (float v)
     {
-        Serial.printf("bonus : %.2f\n", v);
-        // rotate
+        // Serial.printf("bonus : %.2f\n", v);
         v = v * 2 - 1;
         if (std::abs(v) > SLIDER_THRESHOLD)
         {
@@ -177,11 +178,43 @@ void setup()
         }
         else
         {
+#ifdef MEC2105_BRAKE
+            if (robot.mec.is_moving())
+            {
+                robot.mec.brake();
+                delay(MEC2105_BRAKE);
+            }
+#endif
             robot.mec.stop();
         }
     };
 
+#ifdef MEC2105_STEP
+    XBlue::on_pad("d0", [] (float x, float y)
+    {
+        auto dx = (x < 0.0f) ? Mecanum::Dir::N : (x > 0.0f) ? Mecanum::Dir::P : Mecanum::Dir::Z;
+        auto dy = (y < 0.0f) ? Mecanum::Dir::N : (y > 0.0f) ? Mecanum::Dir::P : Mecanum::Dir::Z;
+        if (dx != Mecanum::Dir::Z)
+        {
+            robot.mec.rotate((dx == Mecanum::Dir::P) ? 1.0f : -1.0f);
+        }
+        else if (dy != Mecanum::Dir::Z)
+        {
+            robot.mec.move(Mecanum::Dir::Z, dy, 1.0f);
+        }
+        if (robot.mec.is_moving())
+        {
+            delay(MEC2105_STEP);
+#ifdef MEC2105_BRAKE
+            robot.mec.brake();
+            delay(MEC2105_BRAKE);
+#endif
+        }
+        robot.mec.stop();
+    });
+#else
     XBlue::on_pad("d0", drive);
+#endif
     XBlue::on_pad("d1", drive);
 #elif defined(XBLUE_ARDUINO)
     XBlue::on_button([] (uint8_t id)
@@ -262,8 +295,8 @@ void setup()
 
     Serial.println((MEC2105_NAME + " started").c_str());
 
-#ifdef MEC2105_DBG_BOOT
-    digitalWrite(MEC2105_DBG_BOOT, LOW);
+#ifdef MEC2105_DBG_SETUP
+    digitalWrite(MEC2105_DBG_SETUP, LOW);
 #endif
 }
 

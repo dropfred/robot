@@ -25,6 +25,8 @@ private :
         float update;
     } wheels[4];
 
+    bool moving;
+
     void update() noexcept;
 
 public :
@@ -41,13 +43,15 @@ public :
 
     Mecanum & operator = (Mecanum &&) noexcept = default;
 
-    void move(Dir x, Dir y, float speed) noexcept;
+    void move(Dir x, Dir y, float speed = 1.0f) noexcept;
 
     void stop() noexcept;
 
-    void brake(float force) noexcept;
+    void brake(float force = 1.0f) noexcept;
 
     void rotate(float speed) noexcept;
+
+    bool is_moving() const noexcept;
 };
 
 #endif
