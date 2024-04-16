@@ -219,6 +219,10 @@ void setup()
 #ifdef MEC2105_DBG_BOOT
     digitalWrite(MEC2105_DBG_BOOT, LOW);
 #endif
+
+#ifdef MECANUM_AUTO_TEST
+    robot.wheels.mec.test();
+#endif
 }
 
 void loop()

@@ -3,6 +3,8 @@
 
 #include <motor.h>
 
+// #define MECANUM_AUTO_TEST
+
 class Mecanum
 {
 public :
@@ -48,6 +50,10 @@ public :
     void brake(float force = 1.0f) noexcept;
 
     void rotate(float speed) noexcept;
+
+#ifdef MECANUM_AUTO_TEST
+    void test() noexcept;
+#endif
 };
 
 #endif
