@@ -45,7 +45,7 @@ public :
 
     void stop() noexcept;
 
-    void brake(float force) noexcept;
+    void brake(float force = 1.0f) noexcept;
 
     void rotate(float speed) noexcept;
 };
