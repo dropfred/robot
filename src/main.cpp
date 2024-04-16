@@ -20,7 +20,14 @@ namespace
 
     struct
     {
-        Mecanum mec;
+        struct
+        {
+            Mecanum mec;
+#ifdef MECANUM_BRAKE_DURATION
+            bool brake;
+#endif
+        } wheels;
+
         struct
         {
             Motor up_down;
@@ -32,14 +39,13 @@ namespace
             Servo claw;
         } bonus;
 
-#ifdef MECANUM_BRAKE_DURATION
-        bool brake;
-#endif
     } robot
     {
         {
-            MECANUM_FRONT_LEFT, MECANUM_FRONT_RIGHT,
-            MECANUM_REAR_LEFT , MECANUM_REAR_RIGHT
+            {
+                MECANUM_FRONT_LEFT, MECANUM_FRONT_RIGHT,
+                MECANUM_REAR_LEFT , MECANUM_REAR_RIGHT
+            }
         },
         {MAGNET_UPDOWN},
         {BONUS_UPDOWN, BONUS_CLAW}
@@ -101,19 +107,18 @@ void setup()
 //     }
 // #endif
 
-#if defined (XBLUE_MICRO)
     auto stop = [] ()
     {
 #ifdef MECANUM_BRAKE_DURATION
-        if (robot.brake)
+        if (robot.wheels.brake)
         {
             // Serial.println("brake");
-            robot.mec.brake();
+            robot.wheels.mec.brake();
             delay(MECANUM_BRAKE_DURATION);
-            robot.brake = false;
+            robot.wheels.brake = false;
         }
 #endif
-        robot.mec.stop();
+        robot.wheels.mec.stop();
     };
 
     XBlue::on_slider("sl0", [stop] (float v)
@@ -123,9 +128,9 @@ void setup()
         v = v * 2 - 1;
         if (std::abs(v) > MECANUM_SPEED_LOW)
         {
-            robot.mec.rotate(v);
+            robot.wheels.mec.rotate(v);
 #ifdef MECANUM_BRAKE_DURATION
-            robot.brake = true;
+            robot.wheels.brake = true;
 #endif
         }
         else
@@ -175,9 +180,9 @@ void setup()
         auto dy = (y < -MECANUM_SPEED_LOW) ? Mecanum::Dir::N : (y > MECANUM_SPEED_LOW) ? Mecanum::Dir::P : Mecanum::Dir::Z;
         if ((dx != Mecanum::Dir::Z) || (dy != Mecanum::Dir::Z))
         {
-            robot.mec.move(dx, dy, std::sqrt(x * x + y * y));
+            robot.wheels.mec.move(dx, dy, std::sqrt(x * x + y * y));
 #ifdef MECANUM_BRAKE_DURATION
-            robot.brake = true;
+            robot.wheels.brake = true;
 #endif
         }
         else
@@ -188,62 +193,6 @@ void setup()
 
     XBlue::on_pad("d0", drive);
     XBlue::on_pad("d1", drive);
-#elif defined(XBLUE_ARDUINO)
-    XBlue::on_button([] (uint8_t id)
-    {
-        Serial.printf("button %d\n", id);
-    });
-
-    XBlue::on_slider([] (uint8_t id, float value)
-    {
-        Serial.printf("slider %d : %.2f\n", id, value);
-        value = value * 2 - 1;
-        if (std::abs(value) > MECANUM_SPEED_LOW)
-        {
-            robot.mec.rotate(value);
-        }
-        else
-        {
-            robot.mec.stop();
-        }
-    });
-
-    XBlue::on_drive([] (float throttle, float steering)
-    {
-        float t = std::abs(throttle);
-        float s = std::abs(steering);
-        float d = std::sqrt(t * t + s * s);
-        auto x = Mecanum::Dir::Z;
-        auto y = Mecanum::Dir::Z;
-        if (s > 0.3f)
-        {
-            x = (steering > 0.0f) ? Mecanum::Dir::P : Mecanum::Dir::N;
-        }
-        if ((s < 0.5f) && (t > 0.3f))
-        {
-            y = (throttle > 0.0f) ? Mecanum::Dir::P : Mecanum::Dir::N;
-        }
-        // auto dir = [] (Mecanum::Dir d)
-        // {
-        //     return (d == Mecanum::Dir::P) ? "P"
-        //          : (d == Mecanum::Dir::N) ? "N"
-        //          :                          "Z";
-        // };
-        // Serial.printf("drive : %.2f / %.2f -> %s / %s (%.2f)\n", throttle, steering, dir(x), dir(y), d);
-        if (d > MECANUM_SPEED_LOW)
-        {
-            if (d > MECANUM_SPEED_HIGH)
-            {
-                d = MECANUM_SPEED_HIGH;
-            }
-            robot.mec.move(x, y, d);
-        }
-        else
-        {
-            robot.mec.stop();
-        }
-    });
-#endif
 
     // robot.bonus.claw.attach(BONUS_CLAW, 500, 2400);
     xTaskCreatePinnedToCore
