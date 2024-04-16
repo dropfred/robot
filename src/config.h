@@ -13,6 +13,8 @@
 #define MECANUM_SPEED_HIGH 1.0f
 // #define MECANUM_SPEED_PAD 0.8f
 
+#define MECANUM_BRAKE_DURATION 10
+
 // tools (motor driver) pins
 #define MAGNET_UPDOWN {23, 22, false, 1.0f, false}
 #define BONUS_UPDOWN {21, 19, false, 1.0f, false}

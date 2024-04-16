@@ -31,6 +31,10 @@ namespace
             Motor up_down;
             Servo claw;
         } bonus;
+
+#ifdef MECANUM_BRAKE_DURATION
+        bool brake;
+#endif
     } robot
     {
         {
@@ -98,25 +102,41 @@ void setup()
 // #endif
 
 #if defined (XBLUE_MICRO)
-    XBlue::on_slider("sl0", [] (float v)
+    auto stop = [] ()
     {
-        Serial.printf("sl0 : %.2f\n", v);
+#ifdef MECANUM_BRAKE_DURATION
+        if (robot.brake)
+        {
+            Serial.println("brake");
+            robot.mec.brake();
+            delay(MECANUM_BRAKE_DURATION);
+            robot.brake = false;
+        }
+#endif
+        robot.mec.stop();
+    };
+
+    XBlue::on_slider("sl0", [stop] (float v)
+    {
+        // Serial.printf("sl0 : %.2f\n", v);
         // rotate
         v = v * 2 - 1;
         if (std::abs(v) > MECANUM_SPEED_LOW)
         {
             robot.mec.rotate(v);
+#ifdef MECANUM_BRAKE_DURATION
+            robot.brake = true;
+#endif
         }
         else
         {
-            robot.mec.stop();
+            stop();
         }
     });
 
     XBlue::on_slider("mud", [] (float v)
     {
-        Serial.printf("magnet : %.2f\n", v);
-        // rotate
+        // Serial.printf("magnet : %.2f\n", v);
         v = v * 2 - 1;
         if (std::abs(v) > SLIDER_THRESHOLD)
         {
@@ -130,8 +150,7 @@ void setup()
 
     XBlue::on_slider("bud", [] (float v)
     {
-        Serial.printf("bonus : %.2f\n", v);
-        // rotate
+        // Serial.printf("bonus : %.2f\n", v);
         v = v * 2 - 1;
         if (std::abs(v) > SLIDER_THRESHOLD)
         {
@@ -150,17 +169,20 @@ void setup()
         smooth.target = v * 180;
     });
 
-    auto drive = [] (float x, float y)
+    auto drive = [stop] (float x, float y)
     {
         auto dx = (x < -MECANUM_SPEED_LOW) ? Mecanum::Dir::N : (x > MECANUM_SPEED_LOW) ? Mecanum::Dir::P : Mecanum::Dir::Z;
         auto dy = (y < -MECANUM_SPEED_LOW) ? Mecanum::Dir::N : (y > MECANUM_SPEED_LOW) ? Mecanum::Dir::P : Mecanum::Dir::Z;
         if ((dx != Mecanum::Dir::Z) || (dy != Mecanum::Dir::Z))
         {
             robot.mec.move(dx, dy, std::sqrt(x * x + y * y));
+#ifdef MECANUM_BRAKE_DURATION
+            robot.brake = true;
+#endif
         }
         else
         {
-            robot.mec.stop();
+            stop();
         }
     };
 
