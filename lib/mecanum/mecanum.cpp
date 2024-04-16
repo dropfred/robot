@@ -103,3 +103,33 @@ void Mecanum::rotate(float speed) noexcept
     }
     update();
 }
+
+#ifdef MECANUM_AUTO_TEST
+#include <Arduino.h>
+
+void Mecanum::test() noexcept
+{
+    static char const * names[] = {"FL", "FR", "RL", "RR"};
+
+    delay(3000);
+
+    auto test = [this] (size_t w, float s)
+    {
+        wheels[w].motor.run(s);
+        delay(1000);
+        wheels[w].motor.brake();
+        delay(10);
+        wheels[w].motor.stop();
+    };
+
+    for (size_t i = 0; i < 4; ++i)
+    {
+        Serial.printf("+ %s\n", names[i]);
+        test(i, 1.0f);
+        delay(1000);
+        Serial.printf("- %s\n", names[i]);
+        test(i, -1.0f);
+        delay(1000);
+    }
+}
+#endif
