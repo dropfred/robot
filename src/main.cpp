@@ -107,7 +107,7 @@ void setup()
 #ifdef MECANUM_BRAKE_DURATION
         if (robot.brake)
         {
-            Serial.println("brake");
+            // Serial.println("brake");
             robot.mec.brake();
             delay(MECANUM_BRAKE_DURATION);
             robot.brake = false;
