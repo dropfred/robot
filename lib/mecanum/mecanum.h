@@ -3,18 +3,15 @@
 
 #include <motor.h>
 
+#include <array>
+
 // #define MECANUM_AUTO_TEST
 
 class Mecanum
 {
 public :
 
-    enum class Dir
-    {
-        N,
-        P,
-        Z
-    };
+    enum class Dir {N, P, Z};
 
 private :
 
@@ -22,37 +19,32 @@ private :
     {
         Motor motor;
         Dir x, y;
-        // TODO: use analogGetChannel & ledcRead to retreive the current speed
-        float speed;
-        float update;
     } wheels[4];
-
-    void update() noexcept;
 
 public :
 
-    Mecanum(Motor && fl, Motor && fr, Motor && rl, Motor && rr) noexcept;
+    Mecanum(Motor && fl, Motor && fr, Motor && rl, Motor && rr);
 
     Mecanum(Mecanum const &) = delete;
 
-    Mecanum(Mecanum &&) noexcept = default;
+    Mecanum(Mecanum &&) = default;
     
-    ~Mecanum() noexcept;
+    ~Mecanum();
 
     Mecanum & operator = (Mecanum const &) = delete;
 
-    Mecanum & operator = (Mecanum &&) noexcept = default;
+    Mecanum & operator = (Mecanum &&) = default;
 
-    void move(Dir x, Dir y, float speed) noexcept;
+    void move(Dir x, Dir y, float speed);
 
-    void stop() noexcept;
+    void stop();
 
-    void brake(float force = 1.0f) noexcept;
+    void brake(float force = 1.0f);
 
-    void rotate(float speed) noexcept;
+    void rotate(float speed);
 
 #ifdef MECANUM_AUTO_TEST
-    void test() noexcept;
+    void test();
 #endif
 };
 

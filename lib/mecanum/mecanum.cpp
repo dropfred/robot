@@ -3,8 +3,6 @@
 #include <utility>
 #include <cmath>
 
-#define MECANUM_KICK 5
-
 namespace
 {
     Mecanum::Dir operator - (Mecanum::Dir d)
@@ -15,7 +13,7 @@ namespace
     }
 }
 
-Mecanum::Mecanum(Motor && fl, Motor && fr, Motor && rl, Motor && rr) noexcept :
+Mecanum::Mecanum(Motor && fl, Motor && fr, Motor && rl, Motor && rr) :
     wheels
     {
         {std::move(fl), Dir::P, Dir::P},
@@ -26,36 +24,11 @@ Mecanum::Mecanum(Motor && fl, Motor && fr, Motor && rl, Motor && rr) noexcept :
 {
 }
 
-Mecanum::~Mecanum() noexcept {}
+Mecanum::~Mecanum() {}
 
-void Mecanum::update() noexcept
+void Mecanum::move(Dir x, Dir y, float speed)
 {
-#ifdef MECANUM_KICK
-    bool k = false;
-    for (auto & w : wheels)
-    {
-        float r = (w.update > w.speed) ? 1.0f : (w.update < w.speed) ? -1.0f : 0.0f;
-        if (r != 0.0f)
-        {
-            w.motor.run(r);
-            k = true;
-        }
-    }
-    if (k)
-    {
-        delay(MECANUM_KICK);
-    }
-#endif
-    for (auto & w : wheels)
-    {
-        w.speed = w.update;
-        w.motor.run(w.speed);
-    }
-}
-
-void Mecanum::move(Dir x, Dir y, float speed) noexcept
-{
-    for (auto & w : wheels)
+    for (auto const & w : wheels)
     {
         float s = 0.0f;
         bool zx = (x == Dir::Z), zy = (y == Dir::Z);
@@ -70,44 +43,40 @@ void Mecanum::move(Dir x, Dir y, float speed) noexcept
                 s = -speed;
             }
         }
-        w.update = s;
+        w.motor.run(s);
     }
-    update();
 }
 
-void Mecanum::stop() noexcept
+void Mecanum::stop()
+{
+    for (auto const & w : wheels)
+    {
+        w.motor.stop();
+    }
+}
+
+void Mecanum::brake(float force)
 {
     for (auto & w : wheels)
     {
-        w.update = 0.0f;
-    }
-    update();
-}
-
-void Mecanum::brake(float force) noexcept
-{
-    for (auto & w : wheels)
-    {
-        w.speed = w.update = 0.0f;
         w.motor.brake(force);
     }
 }
 
-void Mecanum::rotate(float speed) noexcept
+void Mecanum::rotate(float speed)
 {
     int r = 1;
     for (auto & w : wheels)
     {
-        w.update = speed * r;
+        w.motor.run(speed * r);
         r = -r;
     }
-    update();
 }
 
 #ifdef MECANUM_AUTO_TEST
 #include <Arduino.h>
 
-void Mecanum::test() noexcept
+void Mecanum::test()
 {
     static char const * names[] = {"FL", "FR", "RL", "RR"};
 
