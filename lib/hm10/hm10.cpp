@@ -1,101 +1,23 @@
 #include <hm10.h>
 
-#ifdef HM10_SERIAL
-#include <Arduino.h>
-
-#include <array>
-
-#ifndef HM10_SERIAL_STREAM
-#define HM10_SERIAL_STREAM Serial1
-#endif
-
-#ifndef HM10_SERIAL_TIMEOUT
-#define HM10_SERIAL_TIMEOUT 10
-#endif
-
-namespace
-{
-    struct
-    {
-        std::string name;
-        uint8_t rx, tx;
-    } hm10 {};
-    
-    void connect()
-    {
-        pinMode(hm10.rx, INPUT);
-        pinMode(hm10.tx, OUTPUT);
-        HM10_SERIAL_STREAM.begin(9600, SERIAL_8N1, hm10.rx, hm10.tx);
-        delay(500);
-        HM10_SERIAL_STREAM.println(("AT+NAME" + hm10.name).c_str());
-        delay(500);
-    }
-}
-
-HM10::WriteCb write_cb {};
-
-bool HM10::start(std::string const & name, uint8_t rx, uint8_t tx, WriteCb cb)
-{
-    write_cb = cb;
-    // pinMode(rx, INPUT);
-    // pinMode(tx, OUTPUT);
-    // HM10_SERIAL_STREAM.begin(9600, SERIAL_8N1, rx, tx);
-    // delay(500);
-    // HM10_SERIAL_STREAM.println(("AT+NAME" + name).c_str());
-    // delay(500);
-    hm10.name = name; hm10.rx = rx; hm10.tx = tx;
-    connect();
-
-    return true;
-}
-
-void HM10::stop()
-{
-}
-
-void HM10::update()
-{
-    if (!HM10_SERIAL_STREAM)
-    {
-        connect();
-    }
-
-    std::array<uint8_t, 20> buffer {};
-    size_t size = 0;
-    unsigned long int t0 = millis(), t1;
-
-    while ((size < buffer.size()) && (t1 = millis(), (t1 - t0) < HM10_SERIAL_TIMEOUT))
-    {
-        if (HM10_SERIAL_STREAM.available())
-        {
-            buffer[size++] = uint8_t(HM10_SERIAL_STREAM.read());
-            t0 = t1;
-        }
-        else
-        {
-            delay(1);
-        }
-    }
-
-    if (write_cb && (size > 0))
-    {
-        // Serial.print("HM10 :"); for (size_t i = 0; i < size; ++i) Serial.printf(" %02X", buffer[i]); Serial.println("");
-        write_cb(buffer.data(), size);
-    }
-}
-
-void HM10::onWrite(WriteCb cb)
-{
-    write_cb = cb;
-}
-
-#else
+#if HM10_BLE_CFG == HM10_BLE_NATIVE
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
 
 #include <esp_log.h>
+
+// setValue takes non const data (wtf?)
+#ifndef HM10_COPY_DATA
+#define HM10_COPY_DATA 1
+#endif
+#if HM10_COPY_DATA
+#define HM10_BUFFER_SIZE 20
+#include <array>
+#include <algorithm>
+#include <cstring>
+#endif
 
 namespace
 {
@@ -221,8 +143,20 @@ bool HM10::send(uint8_t const * data, size_t size)
     bool ok = server != nullptr;
     if (ok)
     {
-        // setValue takes non const data (wtf?)
+        #if HM10_COPY_DATA
+        std::array<uint8_t, HM10_BUFFER_SIZE> buffer {};
+        while (size > 0)
+        {
+            size_t s = std::min(size, buffer.size());
+            std::memcpy(buffer.data(), data, s);
+            characteristic->setValue(buffer.data(), s);
+            data += s;
+            size -= s;
+        }
+        #else
+        // YOLO, LET'S GO UB
         characteristic->setValue(const_cast<uint8_t *>(data), size);
+        #endif
         characteristic->notify(true);
     }
     return ok;
@@ -231,6 +165,91 @@ bool HM10::send(uint8_t const * data, size_t size)
 bool HM10::send(std::string const & data)
 {
     return send(reinterpret_cast<uint8_t const * >(data.c_str()), data.size());
+}
+
+void HM10::onWrite(WriteCb cb)
+{
+    write_cb = cb;
+}
+#elif HM10_BLE_CFG == HM10_BLE_SERIAL
+#include <Arduino.h>
+
+#include <array>
+
+#ifndef HM10_SERIAL_STREAM
+#define HM10_SERIAL_STREAM Serial1
+#endif
+
+#ifndef HM10_SERIAL_TIMEOUT
+#define HM10_SERIAL_TIMEOUT 10
+#endif
+
+#define HM10_BUFFER_SIZE 20
+
+namespace
+{
+    struct
+    {
+        std::string name;
+        uint8_t rx, tx;
+    } hm10 {};
+    
+    void connect()
+    {
+        pinMode(hm10.rx, INPUT);
+        pinMode(hm10.tx, OUTPUT);
+        HM10_SERIAL_STREAM.begin(9600, SERIAL_8N1, hm10.rx, hm10.tx);
+        delay(500);
+        HM10_SERIAL_STREAM.println(("AT+NAME" + hm10.name).c_str());
+        delay(500);
+    }
+}
+
+HM10::WriteCb write_cb {};
+
+bool HM10::start(std::string const & name, uint8_t rx, uint8_t tx, WriteCb cb)
+{
+    hm10.name = name; hm10.rx = rx; hm10.tx = tx; write_cb = cb;
+    connect();
+    return HM10_SERIAL_STREAM;
+}
+
+void HM10::stop()
+{
+    HM10_SERIAL_STREAM.end();
+}
+
+void HM10::update()
+{
+    if (!HM10_SERIAL_STREAM)
+    {
+        connect();
+    }
+
+    if (HM10_SERIAL_STREAM)
+    {
+        std::array<uint8_t, HM10_BUFFER_SIZE> buffer {};
+        size_t size = 0;
+        unsigned long int t0 = millis(), t1;
+
+        while ((size < buffer.size()) && (t1 = millis(), (t1 - t0) < HM10_SERIAL_TIMEOUT))
+        {
+            if (HM10_SERIAL_STREAM.available())
+            {
+                buffer[size++] = uint8_t(HM10_SERIAL_STREAM.read());
+                t0 = t1;
+            }
+            else
+            {
+                delay(1);
+            }
+        }
+
+        if (write_cb && (size > 0))
+        {
+            write_cb(buffer.data(), size);
+        }
+    }
 }
 
 void HM10::onWrite(WriteCb cb)

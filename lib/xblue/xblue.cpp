@@ -1,8 +1,9 @@
 #include <xblue.h>
+#include <hm10.h>
 
 #include <esp_log.h>
 
-#if defined(XBLUE_ARDUINO)
+#if XBLUE_INTERFACE_CFG == XBLUE_INTERFACE_ARDUINO
 #include <ArduinoBlue.h>
 
 #include <cstring>
@@ -144,11 +145,6 @@ namespace
     void hm10_write_cb(uint8_t const * data, size_t size)
     {
         ESP_LOGD(TAG, "hm10_write_cb : %d (%zu)", int(data[0]), size);
-        // {
-        //     Serial.print("hm10_write_cb (%zu) :");
-        //     for (size_t i = 0; i < size; ++i) Serial.printf(" %02X", data[i]);
-        //     Serial.println("");
-        // }
         {
             unsigned long int t = millis();
             if ((t - time) > TIMEOUT)
@@ -240,11 +236,7 @@ namespace XBlue
         callbacks.path = cb;
     }
 }
-#elif defined (XBLUE_MICRO)
-#include <xblue.h>
-
-#include <hm10.h>
-
+#elif XBLUE_INTERFACE_CFG == XBLUE_INTERFACE_MICRO
 #include <vector>
 #include <algorithm>
 
@@ -378,7 +370,12 @@ namespace
 
 namespace XBlue
 {
-#ifdef HM10_SERIAL
+#if HM10_BLE_CFG == HM10_BLE_NATIVE
+    bool start(std::string const & name)
+    {
+        return HM10::start(name, hm10_callback);
+    }
+#elif HM10_BLE_CFG == HM10_BLE_SERIAL
     bool start(std::string const & name, uint8_t rx, uint8_t tx)
     {
         return HM10::start(name, rx, tx, hm10_callback);
@@ -387,11 +384,6 @@ namespace XBlue
     void update()
     {
         HM10::update();
-    }
-#else
-    bool start(std::string const & name)
-    {
-        return HM10::start(name, hm10_callback);
     }
 #endif
     void stop()
@@ -449,6 +441,4 @@ namespace XBlue
         on_text(name, [cb] (std::string const & n, std::string const & msg) {cb(msg);});
     }
 }
-#else
-#error Targeted application not defined
 #endif

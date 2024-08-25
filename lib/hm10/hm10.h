@@ -7,20 +7,7 @@
 #include <cstdint>
 #include <cstddef>
 
-#ifdef HM10_SERIAL
-namespace HM10
-{
-    using WriteCb = std::function<void (uint8_t const *, size_t)>;
-    
-    bool start(std::string const & name, uint8_t rx, uint8_t tx, WriteCb cb = nullptr);
-
-    void stop();
-
-    void update();
-
-    void onWrite(WriteCb cb);
-}
-#else
+#if HM10_BLE_CFG == HM10_BLE_NATIVE
 namespace HM10
 {
     using WriteCb = std::function<void (uint8_t const *, size_t)>;
@@ -41,39 +28,21 @@ namespace HM10
 
     void onWrite(WriteCb cb);
 }
-#endif
-
-#if 0
-class HM10Stream : public Stream
+#elif HM10_BLE_CFG == HM10_BLE_SERIAL
+namespace HM10
 {
-public:
-    HM10Stream()
-    {
-    }
+    using WriteCb = std::function<void (uint8_t const *, size_t)>;
+    
+    bool start(std::string const & name, uint8_t rx, uint8_t tx, WriteCb cb = nullptr);
 
-    HM10Stream(HM10Stream const &) = delete;
-    HM10Stream operator = (HM10Stream const &) = delete;
+    void stop();
 
-    virtual size_t write(uint8_t) override
-    {
-        return 0;
-    }
+    void update();
 
-    virtual int available() override
-    {
-        return 0;
-    }
-
-    virtual int read() override
-    {
-        return 0;
-    }
-
-    virtual int peek() override
-    {
-        return 0;
-    }
-};
+    void onWrite(WriteCb cb);
+}
+#else
+#error undefined ble interface
 #endif
 
 #endif

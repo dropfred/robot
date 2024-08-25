@@ -1,7 +1,7 @@
 #ifndef XBLUE_H
 #define XBLUE_H
 
-#if defined (XBLUE_MICRO)
+#if XBLUE_INTERFACE_CFG == XBLUE_INTERFACE_MICRO
 #include <string>
 #include <functional>
 
@@ -47,10 +47,9 @@ namespace XBlue
     void on_text(std::string const & name, TextCb cb);
     void on_text(std::string const & name, SharedTextCb cb);
 }
-#elif defined(XBLUE_ARDUINO)
-#include <hm10.h>
-
+#elif XBLUE_INTERFACE_CFG == XBLUE_INTERFACE_ARDUINO
 #include <string>
+#include <functional>
 #include <vector>
 #include <cstdint>
 
@@ -73,7 +72,7 @@ namespace XBlue
     void on_path(PathCb cb);
 }
 #else
-#error Undefined interface
+#error undefined xblue interface
 #endif
 
 #endif

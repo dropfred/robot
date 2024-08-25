@@ -2,8 +2,6 @@
 
 #include <ESP32_Servo.h>
 
-#include "config.h"
-
 #include <mecanum.h>
 #include <xblue.h>
 
@@ -91,21 +89,6 @@ void setup()
     WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
     // Serial.println("Bournout detector disabled");
 #endif
-
-// #ifndef HM10_SERIAL
-//     {
-//         uint8_t mac[6];
-
-//         esp_read_mac(mac, ESP_MAC_BT);
-//         Serial.print("Bluetooth MAC : ");
-//         for (size_t i = 0; i < 6; ++i)
-//         {
-//             if (i > 0) Serial.print(":");
-//             Serial.printf("%02X", mac[i]);
-//         }
-//         Serial.println("");
-//     }
-// #endif
 
     auto stop = [] ()
     {
@@ -208,10 +191,10 @@ void setup()
     // smooth.current = smooth.target = robot.bonus.claw.read();
     robot.bonus.claw.write(0);
 
-#ifdef HM10_SERIAL
-    XBlue::start(MEC2105_NAME + " (S)", HM10_SERIAL_RX, HM10_SERIAL_TX);
-#else
+#if HM10_BLE_CFG == HM10_BLE_NATIVE
     XBlue::start(MEC2105_NAME);
+#elif HM10_BLE_CFG == HM10_BLE_SERIAL
+    XBlue::start(MEC2105_NAME + " (S)", HM10_SERIAL_RX, HM10_SERIAL_TX);
 #endif
 
     Serial.println((MEC2105_NAME + " started").c_str());
@@ -227,7 +210,7 @@ void setup()
 
 void loop()
 {
-#ifdef HM10_SERIAL
+#if HM10_BLE_CFG == HM10_BLE_SERIAL
     XBlue::update();
 #endif
 }
