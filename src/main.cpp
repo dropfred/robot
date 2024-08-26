@@ -111,7 +111,8 @@ void setup()
         v = v * 2 - 1;
         if (std::abs(v) > MECANUM_SPEED_LOW)
         {
-            robot.wheels.mec.rotate(v * MECANUM_SPEED_HIGH);
+            float s = std::min(v, MECANUM_SPEED_HIGH);
+            robot.wheels.mec.rotate(s);
 #ifdef MECANUM_BRAKE_DURATION
             robot.wheels.brake = true;
 #endif
@@ -163,7 +164,8 @@ void setup()
         auto dy = (y < -MECANUM_SPEED_LOW) ? Mecanum::Dir::N : (y > MECANUM_SPEED_LOW) ? Mecanum::Dir::P : Mecanum::Dir::Z;
         if ((dx != Mecanum::Dir::Z) || (dy != Mecanum::Dir::Z))
         {
-            robot.wheels.mec.move(dx, dy, std::sqrt(x * x + y * y) * MECANUM_SPEED_HIGH);
+            float s = std::min(std::sqrt(x * x + y * y), MECANUM_SPEED_HIGH);
+            robot.wheels.mec.move(dx, dy, s);
 #ifdef MECANUM_BRAKE_DURATION
             robot.wheels.brake = true;
 #endif
