@@ -7,6 +7,13 @@
 #include <cstdint>
 #include <cstddef>
 
+#define HM10_BLE_NATIVE 1
+#define HM10_BLE_SERIAL 2
+
+#ifndef HM10_BLE_CFG
+#define HM10_BLE_CFG HM10_BLE_NATIVE
+#endif
+
 #if HM10_BLE_CFG == HM10_BLE_NATIVE
 namespace HM10
 {
@@ -42,7 +49,7 @@ namespace HM10
     void onWrite(WriteCb cb);
 }
 #else
-#error undefined ble interface
+#error undefined ble device
 #endif
 
 #endif

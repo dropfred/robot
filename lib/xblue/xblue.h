@@ -1,6 +1,15 @@
 #ifndef XBLUE_H
 #define XBLUE_H
 
+// MicroBlue
+#define XBLUE_INTERFACE_MICRO   1
+// ArduinoBlue
+#define XBLUE_INTERFACE_ARDUINO 2
+
+#ifndef XBLUE_INTERFACE_CFG
+#define XBLUE_INTERFACE_CFG XBLUE_INTERFACE_MICRO
+#endif
+
 #if XBLUE_INTERFACE_CFG == XBLUE_INTERFACE_MICRO
 #include <string>
 #include <functional>
@@ -10,6 +19,7 @@ namespace XBlue
 #ifdef HM10_SERIAL
     bool start(std::string const & name, uint8_t rx, uint8_t tx);
 
+    // TODO: use task
     void update();
 #else
     bool start(std::string const & name);

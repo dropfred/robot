@@ -3,240 +3,7 @@
 
 #include <esp_log.h>
 
-#if XBLUE_INTERFACE_CFG == XBLUE_INTERFACE_ARDUINO
-#include <ArduinoBlue.h>
-
-#include <cstring>
-#include <algorithm>
-
-namespace
-{
-    char const * TAG = "AB";
-
-    struct
-    {
-        XBlue::ButtonCb button;
-        XBlue::SliderCb slider;
-        XBlue::DriveCb drive;
-        XBlue::TextCb text;
-        XBlue::PathCb path;
-    } callbacks {};
-
-// Broken on iOS, data is received one byte at a time.
-#if 0
-    uint8_t type = TRANSMISSION_END;
-
-    std::string text {};
-    struct
-    {
-       size_t length;
-       std::vector<float> points;
-    } path {};
-    
-    void hm10_write_cb(uint8_t const * data, size_t size)
-    {
-        ESP_LOGD(TAG, "hm10_write_cb : %d (%zu)", int(data[0]), size);
-
-        if (type == TRANSMISSION_END)
-        {
-            // assert size > 0
-            type = data[0];
-            if (type == DRIVE_TRANSMISSION)
-            {
-                // assert size == 4
-                if (callbacks.drive)
-                {
-                    float d1 = data[1];
-                    float d2 = data[2];
-                    if (d1 > 98.0f) d1 = 98.0f;
-                    if (d2 > 98.0f) d2 = 98.0f;
-                    d1 = (d1 - 49.0f) / 49.0f;
-                    d2 = (d2 - 49.0f) / 49.0f;
-                    callbacks.drive(d1, d2);
-                }
-                // assert data[3] == TRANSMISSION_END
-                type = TRANSMISSION_END;
-            }
-            else if (type == BUTTON_TRANSMISSION)
-            {
-                // assert size == 3
-                if (callbacks.button)
-                {
-                    callbacks.button(data[1]);
-                }
-                // assert data[2] == TRANSMISSION_END
-                type = TRANSMISSION_END;
-            }
-            else if (type == SLIDER_TRANSMISSION)
-            {
-                // assert size == 4
-                if (callbacks.slider)
-                {
-                    callbacks.slider(data[1], data[2] / 200.0f);
-                }
-                // assert data[3] == TRANSMISSION_END
-                type = TRANSMISSION_END;
-            }
-            else if (type == TEXT_TRANSMISSION)
-            {
-                // assert size == 1
-            }
-            else if (type == PATH_TRANSMISSION)
-            {
-                // assert size == 1
-            }
-            else if (type == CONNECTION_CHECK)
-            {
-                // assert size == 1
-                HM10::send(char(CONNECTION_CHECK));
-                type = TRANSMISSION_END;
-            }
-        }
-        else if (type == TEXT_TRANSMISSION)
-        {
-            uint8_t d = data[0];
-            if (d == TRANSMISSION_END)
-            {
-                type = TRANSMISSION_END;
-                if (callbacks.text)
-                {
-                    callbacks.text(text);
-                }
-                text.clear();
-            }
-            else
-            {
-                text += char(d);
-            }
-        }
-        else if (type == PATH_TRANSMISSION)
-        {
-            // assert size == 4
-            float p; std::memcpy(&p, data, 4);
-
-            if (path.length == 0)
-            {
-                path.length = static_cast<size_t>(p) * 2;
-                path.points.reserve(path.length);
-            }
-            else
-            {
-                path.points.push_back(p);
-                if (path.points.size() == path.length)
-                {
-                    type = TRANSMISSION_END;
-                    HM10::send(uint8_t(PATH_TRANSMISSION_CONFIRMATION));
-                    if (callbacks.path)
-                    {
-                        callbacks.path(path.points);
-                    }
-                    path.length = 0;
-                    path.points.clear();
-                }
-            }
-        }
-    }
-#endif
-    #define TIMEOUT 250
-
-    std::vector<uint8_t> buffer;
-    unsigned long int time;
-
-    void hm10_write_cb(uint8_t const * data, size_t size)
-    {
-        ESP_LOGD(TAG, "hm10_write_cb : %d (%zu)", int(data[0]), size);
-        {
-            unsigned long int t = millis();
-            if ((t - time) > TIMEOUT)
-            {
-                buffer.clear();
-            }
-            time = t;
-        }
-        std::copy(data, data + size, std::back_inserter(buffer));
-
-        if ((buffer.size() >= 4) && (buffer[0] == DRIVE_TRANSMISSION))
-        {
-            if (callbacks.drive)
-            {
-                float d1 = buffer[1];
-                float d2 = buffer[2];
-                if (d1 > 98.0f) d1 = 98.0f;
-                if (d2 > 98.0f) d2 = 98.0f;
-                d1 = (d1 - 49.0f) / 49.0f;
-                d2 = (d2 - 49.0f) / 49.0f;
-                callbacks.drive(d1, d2);
-            }
-            // assert buffer[3] == TRANSMISSION_END
-            buffer.erase(buffer.begin(), buffer.begin() + 4);
-        }
-        else if ((buffer.size() >= 3) && (buffer[0] == BUTTON_TRANSMISSION))
-        {
-            if (callbacks.button)
-            {
-                callbacks.button(buffer[1]);
-            }
-            // assert buffer[2] == TRANSMISSION_END
-            buffer.erase(buffer.begin(), buffer.begin() + 3);
-        }
-        else if ((buffer.size() >= 4) && (buffer[0] == SLIDER_TRANSMISSION))
-        {
-            if (callbacks.slider)
-            {
-                callbacks.slider(buffer[1], buffer[2] / 200.0f);
-            }
-            // assert buffer[3] == TRANSMISSION_END
-            buffer.erase(buffer.begin(), buffer.begin() + 4);
-        }
-        else if ((buffer.size() >= 1) && (buffer[0] == TEXT_TRANSMISSION))
-        {
-            // TODO
-        }
-        else if ((buffer.size() >= 1) && (buffer[0] == PATH_TRANSMISSION))
-        {
-            // TODO
-        }
-    }
-}
-
-namespace XBlue
-{
-    bool start(std::string const & name)
-    {
-        return HM10::start(name, hm10_write_cb);
-    }
-    
-    void stop()
-    {
-        HM10::stop();
-    }
-
-    void on_button(ButtonCb cb)
-    {
-        callbacks.button = cb;
-    }
-
-    void on_slider(SliderCb cb)
-    {
-        callbacks.slider = cb;
-    }
-
-    void on_drive(DriveCb cb)
-    {
-        callbacks.drive = cb;
-    }
-
-    void on_text(TextCb cb)
-    {
-        callbacks.text = cb;
-    }
-
-    void on_path(PathCb cb)
-    {
-        callbacks.path = cb;
-    }
-}
-#elif XBLUE_INTERFACE_CFG == XBLUE_INTERFACE_MICRO
+#if XBLUE_INTERFACE_CFG == XBLUE_INTERFACE_MICRO
 #include <vector>
 #include <algorithm>
 
@@ -439,6 +206,124 @@ namespace XBlue
     void on_text(std::string const & name, std::function<void (std::string const &)> cb)
     {
         on_text(name, [cb] (std::string const & n, std::string const & msg) {cb(msg);});
+    }
+}
+#elif XBLUE_INTERFACE_CFG == XBLUE_INTERFACE_ARDUINO
+#include <ArduinoBlue.h>
+
+#include <cstring>
+#include <algorithm>
+
+namespace
+{
+    char const * TAG = "AB";
+    
+    unsigned long int const HM10_SERIAL_TIMEOUT = 250;
+
+    struct
+    {
+        XBlue::ButtonCb button;
+        XBlue::SliderCb slider;
+        XBlue::DriveCb drive;
+        XBlue::TextCb text;
+        XBlue::PathCb path;
+    } callbacks {};
+
+    std::vector<uint8_t> buffer;
+    unsigned long int time;
+
+    void hm10_write_cb(uint8_t const * data, size_t size)
+    {
+        ESP_LOGD(TAG, "hm10_write_cb : %d (%zu)", int(data[0]), size);
+        {
+            unsigned long int t = millis();
+            if ((t - time) > HM10_SERIAL_TIMEOUT)
+            {
+                buffer.clear();
+            }
+            time = t;
+        }
+        std::copy(data, data + size, std::back_inserter(buffer));
+
+        if ((buffer.size() >= 4) && (buffer[0] == DRIVE_TRANSMISSION))
+        {
+            if (callbacks.drive)
+            {
+                float d1 = buffer[1];
+                float d2 = buffer[2];
+                if (d1 > 98.0f) d1 = 98.0f;
+                if (d2 > 98.0f) d2 = 98.0f;
+                d1 = (d1 - 49.0f) / 49.0f;
+                d2 = (d2 - 49.0f) / 49.0f;
+                callbacks.drive(d1, d2);
+            }
+            // assert buffer[3] == TRANSMISSION_END
+            buffer.erase(buffer.begin(), buffer.begin() + 4);
+        }
+        else if ((buffer.size() >= 3) && (buffer[0] == BUTTON_TRANSMISSION))
+        {
+            if (callbacks.button)
+            {
+                callbacks.button(buffer[1]);
+            }
+            // assert buffer[2] == TRANSMISSION_END
+            buffer.erase(buffer.begin(), buffer.begin() + 3);
+        }
+        else if ((buffer.size() >= 4) && (buffer[0] == SLIDER_TRANSMISSION))
+        {
+            if (callbacks.slider)
+            {
+                callbacks.slider(buffer[1], buffer[2] / 200.0f);
+            }
+            // assert buffer[3] == TRANSMISSION_END
+            buffer.erase(buffer.begin(), buffer.begin() + 4);
+        }
+        else if ((buffer.size() >= 1) && (buffer[0] == TEXT_TRANSMISSION))
+        {
+            // TODO
+        }
+        else if ((buffer.size() >= 1) && (buffer[0] == PATH_TRANSMISSION))
+        {
+            // TODO
+        }
+    }
+}
+
+namespace XBlue
+{
+    bool start(std::string const & name)
+    {
+        return HM10::start(name, hm10_write_cb);
+    }
+    
+    void stop()
+    {
+        HM10::stop();
+    }
+
+    void on_button(ButtonCb cb)
+    {
+        callbacks.button = cb;
+    }
+
+    void on_slider(SliderCb cb)
+    {
+        callbacks.slider = cb;
+    }
+
+    void on_drive(DriveCb cb)
+    {
+        callbacks.drive = cb;
+    }
+
+    void on_text(TextCb cb)
+    {
+        callbacks.text = cb;
+    }
+
+    void on_path(PathCb cb)
+    {
+        callbacks.path = cb;
     }
 }
 #endif

@@ -1,15 +1,9 @@
 #ifndef ROBOT_CONFIG_H
 #define ROBOT_CONFIG_H
 
-#define HM10_BLE_NATIVE 1
-#define HM10_BLE_SERIAL 2
-
 #ifndef HM10_BLE_CFG
 #define HM10_BLE_CFG HM10_BLE_NATIVE
 #endif
-
-#define XBLUE_INTERFACE_MICRO 1
-#define XBLUE_INTERFACE_ARDUINO 2
 
 #ifndef XBLUE_INTERFACE_CFG
 #define XBLUE_INTERFACE_CFG XBLUE_INTERFACE_MICRO
@@ -37,7 +31,7 @@
 #define BONUS_CLAW 27
 
 // bluetooth / serial module pins
-#if ! HM10_NATIVE_BLE
+#if HM10_BLE_CFG == HM10_BLE_SERIAL
 #define HM10_SERIAL_RX 35
 #define HM10_SERIAL_TX 13
 #endif
